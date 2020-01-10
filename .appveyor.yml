@@ -2,40 +2,40 @@ image: Visual Studio 2015  # образ для сборки
 
 environment:
   nodejs_version: "6"
+  MYSQL_DATABASE: node_mysql
+  MYSQL_HOST: localhost
+  MYSQL_USER: root
+  MYSQL_PASSWORD: Password12!
+  MYSQL_PATH: C:\Program Files\MySQL\MySQL Server 5.7
+  MYSQL_PORT: 3306
   DOCKER_USERNAME: murrk
   DOCKER_PASSWORD:
     secure: l6Nlva10IqJeiLSCqbulog==
   DOCKER_REGISTRY: docker.io/murrk/
 
+services:
+  - mysql
+
 branches:
   only:
-    - master  # ветка git
+    - master  
 
-build: off  # будем использовать свой скрипт сборки
+build: off 
 
 install:
-  - ps: Install-Product node $env:nodejs_version
-  - npm install --global npm@latest
-  - set PATH=%APPDATA%\npm;%PATH%
   - npm install
   - ps: curl -L "https://github.com/docker/compose/releases/download/1.24.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
   - ps: chmod +x /usr/local/bin/docker-compose
   - ps: $App = Start-Process -FilePath java -ArgumentList "-jar ./app-shop.jar -P:jdbc.url=jdbc:mysql://192.168.99.100:3306/app -P:jdbc.user=app -P:jdbc.password=pass" -PassThru
 
-  before_build:
-    - docker-compose --version
-    - which docker-compose
-  
-  build_script:
-    - docker-compose -f docker-compose-mysql.yml up -d build
-  
-  deploy_script:
-    - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-    - docker-compose -f docker-compose-mysql.yml up -d push
 
-  build_script:
+build_script:
+  - ps: docker-compose -f docker-compose-mysql.yml up -d build
   - ps: ./gradlew test --info "-Dselenide.headless=true"  # стартуем Selenide в Headless-режиме (см.ниже)
-  - ps: 
-
+  
+deploy_script:
+  - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+  - docker-compose -f docker-compose-mysql.yml up -d push
+  
 on_finish:
-  - ps: Stop-Process -Id $App.Id  # оставливаем SUT
+  - ps: Stop-Process -Id $App.Id  

@@ -83,22 +83,6 @@ public class TestPayment {
     //Негативные
     //Поле номер карты
     @Test
-    @DisplayName("Покупка за наличные, карта не известная")
-    void shouldBeNegativeBuyForCasheCardUnknow() throws SQLException {
-        open(serviceUrl);
-        paymentPage.buyForCash(cardUnknow, user.getCardMonth(), user.getCardYear(), user.getFullName(), user.getCvc());
-        notificationError.waitUntil(visible, 10000);
-    }
-
-    @Test
-    @DisplayName("Покупка в кредит, карта не известная")
-    void shouldBeNegativeBuyInCreditCardUnknow() throws SQLException {
-        open(serviceUrl);
-        paymentPage.buyInCredit(cardUnknow, user.getCardMonth(), user.getCardYear(), user.getFullName(), user.getCvc());
-        notificationError.waitUntil(visible, 10000);
-    }
-
-    @Test
     @DisplayName("Покупка за наличные, номер карты не заполнен")
     void shouldBeNegativeBuyForCasheCardNull() throws SQLException {
         open(serviceUrl);
@@ -112,6 +96,23 @@ public class TestPayment {
         open(serviceUrl);
         paymentPage.buyInCredit("", user.getCardMonth(), user.getCardYear(), user.getFullName(), user.getCvc());
         wrongFormat.shouldBe(visible);
+    }
+
+    //Неизвестная карта
+    @Test
+    @DisplayName("Покупка за наличные, карта не известная")
+    void shouldBeNegativeBuyForCasheCardUnknow() throws SQLException {
+        open(serviceUrl);
+        paymentPage.buyForCash(cardUnknow, user.getCardMonth(), user.getCardYear(), user.getFullName(), user.getCvc());
+        notificationError.waitUntil(visible, 10000);
+    }
+
+    @Test
+    @DisplayName("Покупка в кредит, карта не известная")
+    void shouldBeNegativeBuyInCreditCardUnknow() throws SQLException {
+        open(serviceUrl);
+        paymentPage.buyInCredit(cardUnknow, user.getCardMonth(), user.getCardYear(), user.getFullName(), user.getCvc());
+        notificationError.waitUntil(visible, 10000);
     }
 
     //Поле месяц

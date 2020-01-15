@@ -4,14 +4,10 @@ import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.logevents.SelenideLogger;
 import io.qameta.allure.selenide.AllureSelenide;
 
-import lombok.val;
-import org.apache.commons.dbutils.QueryRunner;
 import org.junit.jupiter.api.*;
 import ru.netology.diploma.Data.DataGenerator;
 import ru.netology.diploma.Db.DbInteraction;
 import ru.netology.diploma.Page.PaymentPage;
-
-import java.sql.DriverManager;
 import java.sql.SQLException;
 
 import static com.codeborne.selenide.Condition.exactText;

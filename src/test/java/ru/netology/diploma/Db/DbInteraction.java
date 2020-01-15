@@ -1,6 +1,7 @@
 package ru.netology.diploma.Db;
 
 import lombok.val;
+import org.apache.commons.dbutils.QueryRunner;
 
 import java.sql.*;
 
@@ -35,6 +36,15 @@ public class DbInteraction {
         status = rs.getString(columnLabel);
         conn.close();
         return status;
+    }
+
+    public static void clearDb() throws SQLException {
+        val runner = new QueryRunner();
+        try (val conn = DriverManager.getConnection(url, user, password)) {
+            runner.update(conn, "DELETE FROM credit_request_entity;");
+            runner.update(conn, "DELETE FROM order_entity;");
+            runner.update(conn, "DELETE FROM payment_entity;");
+        }
     }
 
 }

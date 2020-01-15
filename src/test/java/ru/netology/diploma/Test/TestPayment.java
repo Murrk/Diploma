@@ -4,11 +4,14 @@ import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.logevents.SelenideLogger;
 import io.qameta.allure.selenide.AllureSelenide;
 
+import lombok.val;
+import org.apache.commons.dbutils.QueryRunner;
 import org.junit.jupiter.api.*;
 import ru.netology.diploma.Data.DataGenerator;
 import ru.netology.diploma.Db.DbInteraction;
 import ru.netology.diploma.Page.PaymentPage;
 
+import java.sql.DriverManager;
 import java.sql.SQLException;
 
 import static com.codeborne.selenide.Condition.exactText;
@@ -34,10 +37,14 @@ public class TestPayment {
     static void setUpAll(){
         SelenideLogger.addListener("allure", new AllureSelenide());
     }
+
     @AfterAll
     static void tearDownAll(){
         SelenideLogger.removeListener("allure");
     }
+
+    @AfterAll
+    static void clearDB() throws SQLException { DbInteraction.clearDb(); }
 
     @BeforeEach
     void setUp() {
@@ -47,21 +54,19 @@ public class TestPayment {
 
     //Позитивные
     @Test
-    @DisplayName("Позитвный, покупка за наличные, карта активная + Проверка взаимодействия с БД")
+    @DisplayName("Позитвный, покупка за наличные, карта активная")
     void shouldBePositiveBuyForCash() throws SQLException {
         open(serviceUrl);
         paymentPage.buyForCash(cardGood, user.getCardMonth(), user.getCardYear(), user.getFullName(), user.getCvc());
         notificationSuccessfully.waitUntil(visible, 10000);
-        assertEquals("APPROVED", DbInteraction.paymentStatus());
     }
 
     @Test
-    @DisplayName("Позитвный, покупка в кредит, карта активная + Проверка взаимодействия с БД")
+    @DisplayName("Позитвный, покупка в кредит, карта активная")
     void shouldBePositiveBuyInCredit() throws SQLException {
         open(serviceUrl);
         paymentPage.buyInCredit(cardGood, user.getCardMonth(), user.getCardYear(), user.getFullName(), user.getCvc());
         notificationSuccessfully.waitUntil(visible, 10000);
-        assertEquals("APPROVED", DbInteraction.creditStatus());
     }
 
     @Test
@@ -277,5 +282,43 @@ public class TestPayment {
         open(serviceUrl);
         paymentPage.buyInCredit(cardGood, user.getCardMonth(), user.getCardYear(), user.getFullName(), "ааа");
         wrongFormat.shouldBe(visible);
+    }
+
+    //Проверка взаимодействия с БД"
+
+    @Test
+    @DisplayName("Позитвный, покупка за наличные, карта активная, проверка взаимодействия с БД")
+    void shouldBePositiveBuyForCashBdApproved() throws SQLException {
+        open(serviceUrl);
+        paymentPage.buyForCash(cardGood, user.getCardMonth(), user.getCardYear(), user.getFullName(), user.getCvc());
+        sleep(10000);
+        assertEquals("APPROVED", DbInteraction.paymentStatus());
+    }
+
+    @Test
+    @DisplayName("Позитвный, покупка в кредит, карта активная, проверка взаимодействия с БД")
+    void shouldBePositiveBuyInCreditBdApproved() throws SQLException {
+        open(serviceUrl);
+        paymentPage.buyInCredit(cardGood, user.getCardMonth(), user.getCardYear(), user.getFullName(), user.getCvc());
+        sleep(10000);
+        assertEquals("APPROVED", DbInteraction.creditStatus());
+    }
+
+    @Test
+    @DisplayName("Покупка за наличные, карта не активная, проверка взаимодействия с БД")
+    void shouldBePositiveBuyForCashBdDeclined() throws SQLException {
+        open(serviceUrl);
+        paymentPage.buyForCash(cardBad, user.getCardMonth(), user.getCardYear(), user.getFullName(), user.getCvc());
+        sleep(10000);
+        assertEquals("DECLINED", DbInteraction.paymentStatus());
+    }
+
+    @Test
+    @DisplayName("Покупка в кредит, карта не активная, проверка взаимодействия с БД")
+    void shouldBePositiveBuyInCreditBdDeclined() throws SQLException {
+        open(serviceUrl);
+        paymentPage.buyInCredit(cardBad, user.getCardMonth(), user.getCardYear(), user.getFullName(), user.getCvc());
+        sleep(10000);
+        assertEquals("DECLINED", DbInteraction.creditStatus());
     }
 }

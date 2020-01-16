@@ -23,9 +23,7 @@ branches:
 build: off 
 
 install:
-  - npm install
-  - ps: curl -L "https://github.com/docker/compose/releases/download/1.24.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-  - ps: chmod +x /usr/local/bin/docker-compose
+  - npm install -g
   - ps: $App = Start-Process -FilePath java -ArgumentList "-jar ./app-shop.jar -P:jdbc.url=jdbc:mysql://192.168.99.100:3306/app -P:jdbc.user=app -P:jdbc.password=pass" -PassThru
 
 

@@ -5,6 +5,9 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.Value;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.Locale;
 
 public class DataGenerator {
@@ -18,17 +21,26 @@ public class DataGenerator {
         private final String cardYear;
         private final String fullName;
         private final String cvc;
-
     }
 
     public static User getUserInfo(){
         Faker faker = new Faker(new Locale("En"));
+        String firstName = faker.name().firstName();
+        String lastName = faker.name().lastName();
+        String fullName = (firstName + " " + lastName);
         return new User(
-                Integer.toString(faker.number().numberBetween(10, 12)),
+                getMonth("MM"),
                 Integer.toString(faker.number().numberBetween(21, 25)),
-                faker.name().fullName(),
+                fullName,
                 faker.numerify("###")
         );
     }
 
+    public static String getMonth(String formatDate) {
+        Calendar c = new GregorianCalendar();
+        c.add(Calendar.MONTH, 2);
+        SimpleDateFormat format = new SimpleDateFormat(formatDate);
+        String month = format.format(c.getTime());
+        return month;
+    }
 }

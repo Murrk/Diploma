@@ -1,6 +1,5 @@
 package ru.netology.diploma.Test;
 
-import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.logevents.SelenideLogger;
 import io.qameta.allure.selenide.AllureSelenide;
 
@@ -10,8 +9,6 @@ import ru.netology.diploma.Db.DbInteraction;
 import ru.netology.diploma.Page.PaymentPage;
 import java.sql.SQLException;
 
-import static com.codeborne.selenide.Condition.exactText;
-import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -20,14 +17,19 @@ public class TestPayment {
     private String cardGood = "4444444444444441";
     private String cardBad = "4444444444444442";
     private String cardUnknow = "4444444444444443";
-    private SelenideElement notificationSuccessfully = $$(".notification__title").find(exactText("Успешно"));
-    private SelenideElement notificationError = $$(".notification__title").find(exactText("Ошибка"));
-    private SelenideElement wrongFormat = $$(".input__sub").find(exactText("Неверный формат"));
-    private SelenideElement invalidExpirationDate = $$(".input__sub").find(exactText("Неверно указан срок действия карты"));
-    private SelenideElement expiredCard = $$(".input__sub").find(exactText("Истёк срок действия карты"));
-    private SelenideElement requiredField = $$(".input__sub").find(exactText("Поле обязательно для заполнения"));
+    private String fieldNull = "";
+    private String invalidMonth = "00";
+    private String oldYear = "19";
+    private String invalidYear = "88";
+    private String cyrillicName = "Иван Пупкин";
+    private String invalidName = "1234567";
+    private String invalidCvc = "aaa";
+    private int timeoutTenSeconds = 10000;
+    private String statusApproved = "APPROVED";
+    private String statusDeclined = "DECLINED";
     private DataGenerator.User user;
     PaymentPage paymentPage = new PaymentPage();
+
 
     @BeforeAll
     static void setUpAll(){
@@ -47,274 +49,499 @@ public class TestPayment {
         user = DataGenerator.getUserInfo();
     }
 
-
     //Позитивные
     @Test
-    @DisplayName("Позитвный, покупка за наличные, карта активная")
-    void shouldBePositiveBuyForCash() throws SQLException {
+    @DisplayName("Позитивный, покупка за наличные, карта активная")
+    void shouldBePositiveBuyForCash() {
         open(serviceUrl);
-        paymentPage.buyForCash(cardGood, user.getCardMonth(), user.getCardYear(), user.getFullName(), user.getCvc());
-        notificationSuccessfully.waitUntil(visible, 10000);
+        paymentPage.buyForCash();
+        paymentPage.fillingFields(
+                cardGood,
+                user.getCardMonth(),
+                user.getCardYear(),
+                user.getFullName(),
+                user.getCvc()
+        );
+        paymentPage.notificationSuccessfullyVisible();
     }
 
     @Test
-    @DisplayName("Позитвный, покупка в кредит, карта активная")
-    void shouldBePositiveBuyInCredit() throws SQLException {
+    @DisplayName("Позитивный, покупка в кредит, карта активная")
+    void shouldBePositiveBuyInCredit() {
         open(serviceUrl);
-        paymentPage.buyInCredit(cardGood, user.getCardMonth(), user.getCardYear(), user.getFullName(), user.getCvc());
-        notificationSuccessfully.waitUntil(visible, 10000);
+        paymentPage.buyInCredit();
+        paymentPage.fillingFields(
+                cardGood,
+                user.getCardMonth(),
+                user.getCardYear(),
+                user.getFullName(),
+                user.getCvc()
+        );
+        paymentPage.notificationSuccessfullyVisible();
     }
 
     @Test
     @DisplayName("Покупка за наличные, карта не активная, ожидаем отказ")
-    void shouldBePositiveBuyForCashDeclined() throws SQLException {
+    void shouldBePositiveBuyForCashDeclined() {
         open(serviceUrl);
-        paymentPage.buyForCash(cardBad, user.getCardMonth(), user.getCardYear(), user.getFullName(), user.getCvc());
-        notificationError.waitUntil(visible, 10000);
+        paymentPage.buyForCash();
+        paymentPage.fillingFields(
+                cardBad,
+                user.getCardMonth(),
+                user.getCardYear(),
+                user.getFullName(),
+                user.getCvc()
+        );
+        paymentPage.notificationErrorVisible();
     }
 
     @Test
     @DisplayName("Покупка в кредит, карта не активная, ожидаем отказ")
-    void shouldBePositiveBuyInCreditDeclined() throws SQLException {
+    void shouldBePositiveBuyInCreditDeclined() {
         open(serviceUrl);
-        paymentPage.buyInCredit(cardBad, user.getCardMonth(), user.getCardYear(), user.getFullName(), user.getCvc());
-        notificationError.waitUntil(visible, 10000);
+        paymentPage.buyInCredit();
+        paymentPage.fillingFields(
+                cardBad,
+                user.getCardMonth(),
+                user.getCardYear(),
+                user.getFullName(),
+                user.getCvc()
+        );
+        paymentPage.notificationErrorVisible();
     }
 
     //Негативные
-    //Поле номер карты
+    //Поле "Номер карты"
     @Test
     @DisplayName("Покупка за наличные, номер карты не заполнен")
-    void shouldBeNegativeBuyForCasheCardNull() throws SQLException {
+    void shouldBeNegativeBuyForCasheCardNull() {
         open(serviceUrl);
-        paymentPage.buyForCash("", user.getCardMonth(), user.getCardYear(), user.getFullName(), user.getCvc());
-        wrongFormat.shouldBe(visible);
+        paymentPage.buyForCash();
+        paymentPage.fillingFields(
+                fieldNull,
+                user.getCardMonth(),
+                user.getCardYear(),
+                user.getFullName(),
+                user.getCvc()
+        );
+        paymentPage.wrongFormatVisible();
     }
 
     @Test
     @DisplayName("Покупка в кредит, номер карты не заполнен")
-    void shouldBeNegativeBuyInCreditCardNull() throws SQLException {
+    void shouldBeNegativeBuyInCreditCardNull() {
         open(serviceUrl);
-        paymentPage.buyInCredit("", user.getCardMonth(), user.getCardYear(), user.getFullName(), user.getCvc());
-        wrongFormat.shouldBe(visible);
+        paymentPage.buyInCredit();
+        paymentPage.fillingFields(
+                fieldNull,
+                user.getCardMonth(),
+                user.getCardYear(),
+                user.getFullName(),
+                user.getCvc()
+        );
+        paymentPage.wrongFormatVisible();
+    }
+
+    //Поле "Месяц"
+    @Test
+    @DisplayName("Покупка за наличные, не указан месяц")
+    void shouldBeNegativeBuyForCasheMonthNull() {
+        open(serviceUrl);
+        paymentPage.buyForCash();
+        paymentPage.fillingFields(
+                cardGood,
+                fieldNull,
+                user.getCardYear(),
+                user.getFullName(),
+                user.getCvc()
+        );
+        paymentPage.wrongFormatVisible();
+    }
+
+    @Test
+    @DisplayName("Покупка в кредит, не указан месяц")
+    void shouldBeNegativeBuyInCreditMonthNull() {
+        open(serviceUrl);
+        paymentPage.buyInCredit();
+        paymentPage.fillingFields(
+                cardGood,
+                fieldNull,
+                user.getCardYear(),
+                user.getFullName(),
+                user.getCvc()
+        );
+        paymentPage.wrongFormatVisible();
+    }
+
+    @Test
+    @DisplayName("Покупка за наличные, месяц не существует")
+    void shouldBeNegativeBuyForCasheUnknowMonth() {
+        open(serviceUrl);
+        paymentPage.buyForCash();
+        paymentPage.fillingFields(
+                cardGood,
+                invalidMonth,
+                user.getCardYear(),
+                user.getFullName(),
+                user.getCvc()
+        );
+        paymentPage.invalidExpirationDateVisible();
+    }
+
+    @Test
+    @DisplayName("Покупка в кредит, месяц не существует")
+    void shouldBeNegativeBuyInCreditCardUnknowMonth() {
+        open(serviceUrl);
+        paymentPage.buyInCredit();
+        paymentPage.fillingFields(
+                cardGood,
+                invalidMonth,
+                user.getCardYear(),
+                user.getFullName(),
+                user.getCvc()
+        );
+        paymentPage.invalidExpirationDateVisible();
+    }
+
+    //Поле "Год"
+    @Test
+    @DisplayName("Покупка за наличные, не указан год")
+    void shouldBeNegativeBuyForCasheYearNull() {
+        open(serviceUrl);
+        paymentPage.buyForCash();
+        paymentPage.fillingFields(
+                cardGood,
+                user.getCardMonth(),
+                fieldNull,
+                user.getFullName(),
+                user.getCvc()
+        );
+        paymentPage.wrongFormatVisible();
+    }
+
+    @Test
+    @DisplayName("Покупка в кредит, не указан год")
+    void shouldBeNegativeBuyInCreditYearNull() {
+        open(serviceUrl);
+        paymentPage.buyInCredit();
+        paymentPage.fillingFields(
+                cardGood,
+                user.getCardMonth(),
+                fieldNull,
+                user.getFullName(),
+                user.getCvc()
+        );
+        paymentPage.wrongFormatVisible();
+    }
+
+    @Test
+    @DisplayName("Покупка за наличные, год не существует")
+    void shouldBeNegativeBuyForCasheUnknowYear() {
+        open(serviceUrl);
+        paymentPage.buyForCash();
+        paymentPage.fillingFields(
+                cardGood,
+                user.getCardMonth(),
+                invalidYear,
+                user.getFullName(),
+                user.getCvc()
+        );
+        paymentPage.invalidExpirationDateVisible();
+    }
+
+    @Test
+    @DisplayName("Покупка в кредит, год не существует")
+    void shouldBeNegativeBuyInCreditUnknowYear() {
+        open(serviceUrl);
+        paymentPage.buyInCredit();
+        paymentPage.fillingFields(
+                cardGood,
+                user.getCardMonth(),
+                invalidYear,
+                user.getFullName(),
+                user.getCvc()
+        );
+        paymentPage.invalidExpirationDateVisible();
+    }
+
+    @Test
+    @DisplayName("Покупка за наличные, год старый")
+    void shouldBeNegativeBuyForCasheOldYear() {
+        open(serviceUrl);
+        paymentPage.buyForCash();
+        paymentPage.fillingFields(
+                cardGood,
+                user.getCardMonth(),
+                oldYear,
+                user.getFullName(),
+                user.getCvc()
+        );
+        paymentPage.expiredCardVisible();
+    }
+
+    @Test
+    @DisplayName("Покупка в кредит, год старый")
+    void shouldBeNegativeBuyInCreditOldYear() {
+        open(serviceUrl);
+        paymentPage.buyInCredit();
+        paymentPage.fillingFields(
+                cardGood,
+                user.getCardMonth(),
+                oldYear,
+                user.getFullName(),
+                user.getCvc()
+        );
+        paymentPage.expiredCardVisible();
+    }
+
+    //Поле "Владелец"
+    @Test
+    @DisplayName("Покупка за наличные, имя не заполнено")
+    void shouldBeNegativeBuyForCasheNameNull() {
+        open(serviceUrl);
+        paymentPage.buyForCash();
+        paymentPage.fillingFields(
+                cardGood,
+                user.getCardMonth(),
+                user.getCardYear(),
+                fieldNull,
+                user.getCvc()
+        );
+        paymentPage.requiredFieldVisible();
+    }
+
+    @Test
+    @DisplayName("Покупка в кредит, имя не заполнено")
+    void shouldBeNegativeBuyInCreditNameNull() {
+        open(serviceUrl);
+        paymentPage.buyInCredit();
+        paymentPage.fillingFields(
+                cardGood,
+                user.getCardMonth(),
+                user.getCardYear(),
+                fieldNull,
+                user.getCvc()
+        );
+        paymentPage.requiredFieldVisible();
+    }
+
+    @Test
+    @DisplayName("Покупка за наличные, имя заполнено кириллицей")
+    void shouldBeNegativeBuyForCasheNameRus() {
+        open(serviceUrl);
+        paymentPage.buyForCash();
+        paymentPage.fillingFields(
+                cardGood,
+                user.getCardMonth(),
+                user.getCardYear(),
+                cyrillicName,
+                user.getCvc()
+        );
+        paymentPage.wrongFormatVisible();
+    }
+
+    @Test
+    @DisplayName("Покупка в кредит, имя заполнено кириллицей")
+    void shouldBeNegativeBuyInCreditNameRus() {
+        open(serviceUrl);
+        paymentPage.buyInCredit();
+        paymentPage.fillingFields(
+                cardGood,
+                user.getCardMonth(),
+                user.getCardYear(),
+                cyrillicName,
+                user.getCvc()
+        );
+        paymentPage.wrongFormatVisible();
+    }
+
+    @Test
+    @DisplayName("Покупка за наличные, имя заполнено цифрами")
+    void shouldBeNegativeBuyForCasheNameNumbers() {
+        open(serviceUrl);
+        paymentPage.buyForCash();
+        paymentPage.fillingFields(
+                cardGood,
+                user.getCardMonth(),
+                user.getCardYear(),
+                invalidName,
+                user.getCvc()
+        );
+        paymentPage.wrongFormatVisible();
+    }
+
+    @Test
+    @DisplayName("Покупка в кредит, имя заполнено цифрами")
+    void shouldBeNegativeBuyInCreditNameNumbers() {
+        open(serviceUrl);
+        paymentPage.buyInCredit();
+        paymentPage.fillingFields(
+                cardGood,
+                user.getCardMonth(),
+                user.getCardYear(),
+                invalidName,
+                user.getCvc()
+        );
+        paymentPage.wrongFormatVisible();
+    }
+
+    //Поле "Cvc/cvv"
+    @Test
+    @DisplayName("Покупка за наличные, код не заполнен")
+    void shouldBeNegativeBuyForCasheCvcNull() {
+        open(serviceUrl);
+        paymentPage.buyForCash();
+        paymentPage.fillingFields(
+                cardGood,
+                user.getCardMonth(),
+                user.getCardYear(),
+                user.getFullName(),
+                fieldNull
+        );
+        paymentPage.wrongFormatVisible();
+    }
+
+    @Test
+    @DisplayName("Покупка в кредит, код не заполнен")
+    void shouldBeNegativeBuyInCreditCvcNull() {
+        open(serviceUrl);
+        paymentPage.buyInCredit();
+        paymentPage.fillingFields(
+                cardGood,
+                user.getCardMonth(),
+                user.getCardYear(),
+                user.getFullName(),
+                fieldNull
+        );
+        paymentPage.wrongFormatVisible();
+    }
+
+    @Test
+    @DisplayName("Покупка за наличные, код заполнен буквами")
+    void shouldBeNegativeBuyForCasheCvcChar() {
+        open(serviceUrl);
+        paymentPage.buyForCash();
+        paymentPage.fillingFields(
+                cardGood,
+                user.getCardMonth(),
+                user.getCardYear(),
+                user.getFullName(),
+                invalidCvc
+        );
+        paymentPage.wrongFormatVisible();
+    }
+
+    @Test
+    @DisplayName("Покупка в кредит, код заполнен буквами")
+    void shouldBeNegativeBuyInCreditCvcChar() {
+        open(serviceUrl);
+        paymentPage.buyInCredit();
+        paymentPage.fillingFields(
+                cardGood,
+                user.getCardMonth(),
+                user.getCardYear(),
+                user.getFullName(),
+                invalidCvc
+        );
+        paymentPage.wrongFormatVisible();
     }
 
     //Неизвестная карта
     @Test
     @DisplayName("Покупка за наличные, карта не известная")
-    void shouldBeNegativeBuyForCasheCardUnknow() throws SQLException {
+    void shouldBeNegativeBuyForCasheCardUnknow() {
         open(serviceUrl);
-        paymentPage.buyForCash(cardUnknow, user.getCardMonth(), user.getCardYear(), user.getFullName(), user.getCvc());
-        notificationError.waitUntil(visible, 10000);
+        paymentPage.buyForCash();
+        paymentPage.fillingFields(
+                cardUnknow,
+                user.getCardMonth(),
+                user.getCardYear(),
+                user.getFullName(),
+                user.getCvc()
+        );
+        paymentPage.notificationErrorVisible();
     }
 
     @Test
     @DisplayName("Покупка в кредит, карта не известная")
-    void shouldBeNegativeBuyInCreditCardUnknow() throws SQLException {
+    void shouldBeNegativeBuyInCreditCardUnknow() {
         open(serviceUrl);
-        paymentPage.buyInCredit(cardUnknow, user.getCardMonth(), user.getCardYear(), user.getFullName(), user.getCvc());
-        notificationError.waitUntil(visible, 10000);
-    }
-
-    //Поле месяц
-    @Test
-    @DisplayName("Покупка за наличные, не указан месяц")
-    void shouldBeNegativeBuyForCasheMonthNull() throws SQLException {
-        open(serviceUrl);
-        paymentPage.buyForCash(cardGood, "", user.getCardYear(), user.getFullName(), user.getCvc());
-        wrongFormat.shouldBe(visible);
-    }
-
-    @Test
-    @DisplayName("Покупка в кредит, не указан месяц")
-    void shouldBeNegativeBuyInCreditMonthNull() throws SQLException {
-        open(serviceUrl);
-        paymentPage.buyInCredit(cardGood, "", user.getCardYear(), user.getFullName(), user.getCvc());
-        wrongFormat.shouldBe(visible);
-    }
-
-    @Test
-    @DisplayName("Покупка за наличные, месяц не существует")
-    void shouldBeNegativeBuyForCasheUnknowMonth() throws SQLException {
-        open(serviceUrl);
-        paymentPage.buyForCash(cardGood, "00", user.getCardYear(), user.getFullName(), user.getCvc());
-        invalidExpirationDate.shouldBe(visible);
-    }
-
-    @Test
-    @DisplayName("Покупка в кредит, месяц не существует")
-    void shouldBeNegativeBuyInCreditCardUnknowMonth() throws SQLException {
-        open(serviceUrl);
-        paymentPage.buyInCredit(cardGood, "00", user.getCardYear(), user.getFullName(), user.getCvc());
-        invalidExpirationDate.shouldBe(visible);
-    }
-
-    //Поле год
-    @Test
-    @DisplayName("Покупка за наличные, год старый")
-    void shouldBeNegativeBuyForCasheOldYear() throws SQLException {
-        open(serviceUrl);
-        paymentPage.buyForCash(cardGood, user.getCardMonth(), "19", user.getFullName(), user.getCvc());
-        expiredCard.shouldBe(visible);
-    }
-
-    @Test
-    @DisplayName("Покупка в кредит, год старый")
-    void shouldBeNegativeBuyInCreditOldYear() throws SQLException {
-        open(serviceUrl);
-        paymentPage.buyInCredit(cardGood, user.getCardMonth(), "19", user.getFullName(), user.getCvc());
-        expiredCard.shouldBe(visible);
-    }
-
-    @Test
-    @DisplayName("Покупка за наличные, не указан год")
-    void shouldBeNegativeBuyForCasheYearNull() throws SQLException {
-        open(serviceUrl);
-        paymentPage.buyForCash(cardGood, user.getCardMonth(), "", user.getFullName(), user.getCvc());
-        wrongFormat.shouldBe(visible);
-    }
-
-    @Test
-    @DisplayName("Покупка в кредит, не указан год")
-    void shouldBeNegativeBuyInCreditYearNull() throws SQLException {
-        open(serviceUrl);
-        paymentPage.buyInCredit(cardGood, user.getCardMonth(), "", user.getFullName(), user.getCvc());
-        wrongFormat.shouldBe(visible);
-    }
-
-    @Test
-    @DisplayName("Покупка за наличные, год не существует")
-    void shouldBeNegativeBuyForCasheUnknowYear() throws SQLException {
-        open(serviceUrl);
-        paymentPage.buyForCash(cardGood, user.getCardMonth(), "88", user.getFullName(), user.getCvc());
-        invalidExpirationDate.shouldBe(visible);
-    }
-
-    @Test
-    @DisplayName("Покупка в кредит, год не существует")
-    void shouldBeNegativeBuyInCreditUnknowYear() throws SQLException {
-        open(serviceUrl);
-        paymentPage.buyInCredit(cardGood, user.getCardMonth(), "88", user.getFullName(), user.getCvc());
-        invalidExpirationDate.shouldBe(visible);
-    }
-
-    //Поле Владелец
-    @Test
-    @DisplayName("Покупка за наличные, имя не заполнено")
-    void shouldBeNegativeBuyForCasheNameNull() throws SQLException {
-        open(serviceUrl);
-        paymentPage.buyForCash(cardGood, user.getCardMonth(), user.getCardYear(), "", user.getCvc());
-        requiredField.shouldBe(visible);
-    }
-
-    @Test
-    @DisplayName("Покупка в кредит, имя не заполнено")
-    void shouldBeNegativeBuyInCreditNameNull() throws SQLException {
-        open(serviceUrl);
-        paymentPage.buyInCredit(cardGood, user.getCardMonth(), user.getCardYear(), "", user.getCvc());
-        requiredField.shouldBe(visible);
-    }
-
-    @Test
-    @DisplayName("Покупка за наличные, имя заполнено кириллицей")
-    void shouldBeNegativeBuyForCasheNameRus() throws SQLException {
-        open(serviceUrl);
-        paymentPage.buyForCash(cardGood, user.getCardMonth(), user.getCardYear(), "Иван Пупкин", user.getCvc());
-        wrongFormat.shouldBe(visible);
-    }
-
-    @Test
-    @DisplayName("Покупка в кредит, имя заполнено кириллицей")
-    void shouldBeNegativeBuyInCreditNameRus() throws SQLException {
-        open(serviceUrl);
-        paymentPage.buyInCredit(cardGood, user.getCardMonth(), user.getCardYear(), "Иван Пупкин", user.getCvc());
-        wrongFormat.shouldBe(visible);
-    }
-
-    @Test
-    @DisplayName("Покупка за наличные, имя заполнено цифрами")
-    void shouldBeNegativeBuyForCasheNameNumbers() throws SQLException {
-        open(serviceUrl);
-        paymentPage.buyForCash(cardGood, user.getCardMonth(), user.getCardYear(), "123456789", user.getCvc());
-        wrongFormat.shouldBe(visible);
-    }
-
-    @Test
-    @DisplayName("Покупка в кредит, имя заполнено цифрами")
-    void shouldBeNegativeBuyInCreditNameNumbers() throws SQLException {
-        open(serviceUrl);
-        paymentPage.buyInCredit(cardGood, user.getCardMonth(), user.getCardYear(), "123456789", user.getCvc());
-        wrongFormat.shouldBe(visible);
-    }
-
-    //Поле cvc/cvv
-    @Test
-    @DisplayName("Покупка за наличные, код не заполнен")
-    void shouldBeNegativeBuyForCasheCvcNull() throws SQLException {
-        open(serviceUrl);
-        paymentPage.buyForCash(cardGood, user.getCardMonth(), user.getCardYear(), user.getFullName(),"");
-        wrongFormat.shouldBe(visible);
-    }
-
-    @Test
-    @DisplayName("Покупка в кредит, код не заполнен")
-    void shouldBeNegativeBuyInCreditCvcNull() throws SQLException {
-        open(serviceUrl);
-        paymentPage.buyInCredit(cardGood, user.getCardMonth(), user.getCardYear(), user.getFullName(), "");
-        wrongFormat.shouldBe(visible);
-    }
-
-    @Test
-    @DisplayName("Покупка за наличные, код заполнен буквами")
-    void shouldBeNegativeBuyForCasheCvcChar() throws SQLException {
-        open(serviceUrl);
-        paymentPage.buyForCash(cardGood, user.getCardMonth(), user.getCardYear(), user.getFullName(),"ааа");
-        wrongFormat.shouldBe(visible);
-    }
-
-    @Test
-    @DisplayName("Покупка в кредит, код заполнен буквами")
-    void shouldBeNegativeBuyInCreditCvcChar() throws SQLException {
-        open(serviceUrl);
-        paymentPage.buyInCredit(cardGood, user.getCardMonth(), user.getCardYear(), user.getFullName(), "ааа");
-        wrongFormat.shouldBe(visible);
+        paymentPage.buyInCredit();
+        paymentPage.fillingFields(
+                cardUnknow,
+                user.getCardMonth(),
+                user.getCardYear(),
+                user.getFullName(),
+                user.getCvc()
+        );
+        paymentPage.notificationErrorVisible();
     }
 
     //Проверка взаимодействия с БД"
-
     @Test
-    @DisplayName("Позитвный, покупка за наличные, карта активная, проверка взаимодействия с БД")
+    @DisplayName("Позитивный, покупка за наличные, карта активная, проверка взаимодействия с БД")
     void shouldBePositiveBuyForCashBdApproved() throws SQLException {
         open(serviceUrl);
-        paymentPage.buyForCash(cardGood, user.getCardMonth(), user.getCardYear(), user.getFullName(), user.getCvc());
-        sleep(10000);
-        assertEquals("APPROVED", DbInteraction.paymentStatus());
+        paymentPage.buyForCash();
+        paymentPage.fillingFields(
+                cardGood,
+                user.getCardMonth(),
+                user.getCardYear(),
+                user.getFullName(),
+                user.getCvc());
+        sleep(timeoutTenSeconds);
+        assertEquals(statusApproved, DbInteraction.paymentStatus());
+        DbInteraction.checkPaymentId();
     }
 
     @Test
-    @DisplayName("Позитвный, покупка в кредит, карта активная, проверка взаимодействия с БД")
+    @DisplayName("Позитивный, покупка в кредит, карта активная, проверка взаимодействия с БД")
     void shouldBePositiveBuyInCreditBdApproved() throws SQLException {
         open(serviceUrl);
-        paymentPage.buyInCredit(cardGood, user.getCardMonth(), user.getCardYear(), user.getFullName(), user.getCvc());
-        sleep(10000);
-        assertEquals("APPROVED", DbInteraction.creditStatus());
+        paymentPage.buyInCredit();
+        paymentPage.fillingFields(
+                cardGood,
+                user.getCardMonth(),
+                user.getCardYear(),
+                user.getFullName(),
+                user.getCvc()
+        );
+        sleep(timeoutTenSeconds);
+        assertEquals(statusApproved, DbInteraction.creditStatus());
+        DbInteraction.checkCreditId();
     }
 
     @Test
     @DisplayName("Покупка за наличные, карта не активная, проверка взаимодействия с БД")
     void shouldBePositiveBuyForCashBdDeclined() throws SQLException {
         open(serviceUrl);
-        paymentPage.buyForCash(cardBad, user.getCardMonth(), user.getCardYear(), user.getFullName(), user.getCvc());
-        sleep(10000);
-        assertEquals("DECLINED", DbInteraction.paymentStatus());
+        paymentPage.buyForCash();
+        paymentPage.fillingFields(
+                cardBad,
+                user.getCardMonth(),
+                user.getCardYear(),
+                user.getFullName(),
+                user.getCvc()
+        );
+        sleep(timeoutTenSeconds);
+        assertEquals(statusDeclined, DbInteraction.paymentStatus());
+        DbInteraction.checkPaymentId();
     }
 
     @Test
     @DisplayName("Покупка в кредит, карта не активная, проверка взаимодействия с БД")
     void shouldBePositiveBuyInCreditBdDeclined() throws SQLException {
         open(serviceUrl);
-        paymentPage.buyInCredit(cardBad, user.getCardMonth(), user.getCardYear(), user.getFullName(), user.getCvc());
-        sleep(10000);
-        assertEquals("DECLINED", DbInteraction.creditStatus());
+        paymentPage.buyInCredit();
+        paymentPage.fillingFields(
+                cardBad,
+                user.getCardMonth(),
+                user.getCardYear(),
+                user.getFullName(),
+                user.getCvc()
+        );
+        sleep(timeoutTenSeconds);
+        assertEquals(statusDeclined, DbInteraction.creditStatus());
+        DbInteraction.checkCreditId();
     }
 }

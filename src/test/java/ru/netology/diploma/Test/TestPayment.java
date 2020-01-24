@@ -480,7 +480,7 @@ public class TestPayment {
     //Проверка взаимодействия с БД"
     @Test
     @DisplayName("Позитивный, покупка за наличные, карта активная, проверка взаимодействия с БД")
-    void shouldBePositiveBuyForCashBdApproved() throws SQLException {
+    void shouldBePositiveBuyForCashBdApproved() {
         open(serviceUrl);
         paymentPage.buyForCash();
         paymentPage.fillingFields(
@@ -496,7 +496,7 @@ public class TestPayment {
 
     @Test
     @DisplayName("Позитивный, покупка в кредит, карта активная, проверка взаимодействия с БД")
-    void shouldBePositiveBuyInCreditBdApproved() throws SQLException {
+    void shouldBePositiveBuyInCreditBdApproved() {
         open(serviceUrl);
         paymentPage.buyInCredit();
         paymentPage.fillingFields(
@@ -513,7 +513,7 @@ public class TestPayment {
 
     @Test
     @DisplayName("Покупка за наличные, карта не активная, проверка взаимодействия с БД")
-    void shouldBePositiveBuyForCashBdDeclined() throws SQLException {
+    void shouldBePositiveBuyForCashBdDeclined() {
         open(serviceUrl);
         paymentPage.buyForCash();
         paymentPage.fillingFields(
@@ -530,7 +530,7 @@ public class TestPayment {
 
     @Test
     @DisplayName("Покупка в кредит, карта не активная, проверка взаимодействия с БД")
-    void shouldBePositiveBuyInCreditBdDeclined() throws SQLException {
+    void shouldBePositiveBuyInCreditBdDeclined() {
         open(serviceUrl);
         paymentPage.buyInCredit();
         paymentPage.fillingFields(

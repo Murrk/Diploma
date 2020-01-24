@@ -12,19 +12,19 @@ public class DbInteraction {
     private static String user = "app";
     private static String password = "pass";
 
-    public static String paymentStatus() throws SQLException{
+    public static String paymentStatus() {
         String sql = "SELECT status FROM payment_entity ORDER BY created DESC LIMIT 1;";
         String columnLabel = "status";
         return compareStatus(sql, columnLabel);
     }
 
-    public static String creditStatus() throws SQLException{
+    public static String creditStatus() {
         String sql = "SELECT status FROM credit_request_entity ORDER BY created DESC LIMIT 1;";
         String columnLabel = "status";
         return compareStatus(sql, columnLabel);
     }
 
-    public static boolean checkCreditId() throws SQLException{
+    public static boolean checkCreditId() {
         String sqlCredit = "SELECT bank_id FROM credit_request_entity ORDER BY created DESC LIMIT 1;";
         String columnLabelCredit = "bank_id";
         String sqlOrder = "SELECT credit_id FROM order_entity ORDER BY created DESC LIMIT 1;";
@@ -33,7 +33,7 @@ public class DbInteraction {
         return true;
     }
 
-    public static boolean checkPaymentId() throws SQLException{
+    public static boolean checkPaymentId() {
         String sqlPayment = "SELECT transaction_id FROM payment_entity ORDER BY created DESC LIMIT 1;";
         String columnLabelPayment = "transaction_id";
         String sqlOrder = "SELECT payment_id FROM order_entity ORDER BY created DESC LIMIT 1;";
@@ -42,15 +42,17 @@ public class DbInteraction {
         return true;
     }
 
-    public static String compareStatus(String sql, String columnLabel) throws SQLException {
-        String status;
-        try (val conn = DriverManager.getConnection(url, user, password)) {
-            val statement = conn.prepareStatement(sql);
-            val rs = statement.executeQuery();
-            rs.next();
-            status = rs.getString(columnLabel);
+    public static String compareStatus(String sql, String columnLabel) {
+        String status = "";
+            try (val conn = DriverManager.getConnection(url, user, password)) {
+                val statement = conn.prepareStatement(sql);
+                val rs = statement.executeQuery();
+                rs.next();
+                status = rs.getString(columnLabel);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
             return status;
-        }
     }
 
     public static void clearDb() throws SQLException {

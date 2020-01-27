@@ -1,4 +1,4 @@
-package ru.netology.diploma.Db;
+package ru.netology.diploma.db;
 
 import lombok.val;
 import org.apache.commons.dbutils.QueryRunner;
@@ -42,7 +42,7 @@ public class DbInteraction {
         return true;
     }
 
-    public static String compareStatus(String sql, String columnLabel) {
+    private static String compareStatus(String sql, String columnLabel) {
         String status = "";
             try (val conn = DriverManager.getConnection(url, user, password)) {
                 val statement = conn.prepareStatement(sql);
@@ -55,12 +55,14 @@ public class DbInteraction {
             return status;
     }
 
-    public static void clearDb() throws SQLException {
+    public static void clearDb() {
         val runner = new QueryRunner();
         try (val conn = DriverManager.getConnection(url, user, password)) {
             runner.update(conn, "DELETE FROM credit_request_entity;");
             runner.update(conn, "DELETE FROM order_entity;");
             runner.update(conn, "DELETE FROM payment_entity;");
+        } catch (SQLException e) {
+        e.printStackTrace();
         }
     }
 

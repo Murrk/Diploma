@@ -1,5 +1,4 @@
-package ru.netology.diploma.Page;
-
+package ru.netology.diploma.page;
 
 import com.codeborne.selenide.SelenideElement;
 
@@ -8,10 +7,6 @@ import static com.codeborne.selenide.Condition.visible;
 import static com.codeborne.selenide.Selenide.$$;
 
 public class PaymentPage {
-    private SelenideElement buyButton = $$(".button__content").find(exactText("Купить"));
-    private SelenideElement buyInCreditButton = $$(".button__content").find(exactText("Купить в кредит"));
-    private SelenideElement buyForCash = $$(".heading_theme_alfa-on-white").find(exactText("Оплата по карте"));
-    private SelenideElement buyInCredit = $$(".heading_theme_alfa-on-white").find(exactText("Кредит по данным карты"));
     private SelenideElement fieldCardNumber = $$(".input__control").get(0);
     private SelenideElement fieldCardMonth = $$(".input__control").get(1);
     private SelenideElement fieldCardYear = $$(".input__control").get(2);
@@ -24,18 +19,7 @@ public class PaymentPage {
     private SelenideElement invalidExpirationDate = $$(".input__sub").find(exactText("Неверно указан срок действия карты"));
     private SelenideElement expiredCard = $$(".input__sub").find(exactText("Истёк срок действия карты"));
     private SelenideElement requiredField = $$(".input__sub").find(exactText("Поле обязательно для заполнения"));
-
     private int timeoutTenSeconds = 10000;
-
-    public void buyForCash () {
-        buyButton.click();
-        buyForCash.shouldBe(visible);
-    }
-
-    public void buyInCredit () {
-        buyInCreditButton.click();
-        buyInCredit.shouldBe(visible);
-    }
 
     public void fillingFields(String card, String cardMonth, String cardYear, String name, String cvc){
         fieldCardNumber.setValue(card);
@@ -69,5 +53,4 @@ public class PaymentPage {
     public void requiredFieldVisible() {
         requiredField.shouldBe(visible);
     }
-
 }

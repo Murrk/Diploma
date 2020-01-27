@@ -23,7 +23,7 @@ branches:
 build: off 
 
 install:
-  - npm install -g
+  - ps: Start-Process -FilePath "- npm install ./gate-simulator/"
   - ps: $App = Start-Process -FilePath java -ArgumentList "-jar ./app-shop.jar -P:jdbc.url=jdbc:mysql://192.168.99.100:3306/app -P:jdbc.user=app -P:jdbc.password=pass" -PassThru
 
 

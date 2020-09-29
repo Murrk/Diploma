@@ -1,49 +1,23 @@
-image: Visual Studio 2017  # образ для сборки
+image: Ubuntu
 
-environment:
-  nodejs_version: "6"
-  MYSQL_DATABASE: node_mysql
-  MYSQL_HOST: localhost
-  MYSQL_USER: root
-  MYSQL_PASSWORD: Password12!
-  MYSQL_PATH: C:\Program Files\MySQL\MySQL Server 5.7
-  MYSQL_PORT: 3306
-  DOCKER_USERNAME: murrk
-  DOCKER_PASSWORD:
-    secure: l6Nlva10IqJeiLSCqbulog==
-  DOCKER_REGISTRY: docker.io/murrk/
-
-services:
-  - mysql
+stack: jdk 11
 
 branches:
   only:
-    - master  
+    - master
 
-build: off 
+build: off
+
+services:
+  - docker
 
 install:
-  - ps: sudo curl -L "https://github.com/docker/compose/releases/download/1.26.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+  - ps: sudo curl -L "https://github.com/docker/compose/releases/download/1.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
   - ps: sudo chmod +x /usr/local/bin/docker-compose
   - ps: sudo docker-compose up -d
   - sleep 10
-  - java -Dspring.datasource.url=jdbc:mysql://localhost:3306/app -jar aqa-shop.jar &
-  - ps: npm install -g npm@latest
-  - ps: $App = Start-Process -FilePath java -ArgumentList "-jar ./app-shop.jar -P:jdbc.url=jdbc:mysql://192.168.99.100:3306/app -P:jdbc.user=app -P:jdbc.password=pass" -PassThru
+  - java -Dspring.datasource.url=jdbc:mysql://localhost:3306/app -jar ./artifacts/aqa-shop.jar &
 
-
- test_script:
-   - sudo chmod +x gradlew
-   - ps: ./gradlew test --info “-Dselenide.headless=true”
- 
- build_script:
-   - sleep 10
-   - sudo chmod +x ./gradlew
-   - ./gradlew test -Dselenide.headless=true -Durlbd=jdbc:mysql://localhost:3306/app
-  
-deploy_script:
-  - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-  - docker-compose docker-compose-mysql.yml up -d push
-  
-on_finish:
-  - ps: Stop-Process -Id $App.Id  
+build_script:
+  - sleep 10
+  - ./gradlew test -Dselenide.headless=true --info

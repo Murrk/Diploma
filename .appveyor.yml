@@ -29,12 +29,12 @@ install:
 
 
 build_script:
-  - ps: docker-compose -f docker-compose-mysql.yml up -d build
+  - ps: docker-compose docker-compose-mysql.yml up -d build
   - ps: ./gradlew test --info "-Dselenide.headless=true"  # стартуем Selenide в Headless-режиме (см.ниже)
   
 deploy_script:
   - docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
-  - docker-compose -f docker-compose-mysql.yml up -d push
+  - docker-compose docker-compose-mysql.yml up -d push
   
 on_finish:
   - ps: Stop-Process -Id $App.Id  

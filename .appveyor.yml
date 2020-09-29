@@ -1,4 +1,4 @@
-image: Visual Studio 2015  # образ для сборки
+image: Visual Studio 2017  # образ для сборки
 
 environment:
   nodejs_version: "6"
@@ -24,7 +24,6 @@ build: off
 
 install:
   - ps: npm install -g npm@latest
-  - docker version
   - ps: $App = Start-Process -FilePath java -ArgumentList "-jar ./app-shop.jar -P:jdbc.url=jdbc:mysql://192.168.99.100:3306/app -P:jdbc.user=app -P:jdbc.password=pass" -PassThru
 
 
